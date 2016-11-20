@@ -3,5 +3,6 @@
 
 import pdfkit
 
-pdfkit.from_url("http://47.88.17.212:9001/index", "ics.pdf")
+#pdfkit.from_url("http://stackoverflow.com/questions/23359083/how-to-convert-webpage-into-pdf-by-using-python", "ics.pdf")
+pdfkit.from_file("word_pdf.html", "word_pdf.pdf")
 

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>风险分析</title>
+    <link rel="stylesheet" href="static/css/roboto.css" />
+    <link rel="stylesheet" href="static/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="static/css/jquery-confirm.css" />
+    <link rel="stylesheet" href="static/css/risk.css" />
+    <script type="text/javascript" src="static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="static/js/vue.min.js"></script>
+    <script type="text/javascript" src="static/js/jquery-confirm.min.js"></script>
+    <script type="text/javascript" src="static/js/echarts.js"></script>
+    <script type="text/javascript" src="static/js/macarons.js"></script>
+</head>
+<body id="app">
+<nav>
+    <div id="navbar">
+        <div id="logo">灯塔实验室</div>
+        <div id="navContent">
+            <span id="startEval"><a href="index.html">开始评估&nbsp;&nbsp;&gt;</a></span>
+            <span id="assetAdmin"><a href="assetsAdmin.html">资产管理&nbsp;&nbsp;&gt;</a></span>
+            <span id="riskAnalysis"><a href="riskAnalysis.html"><span style="color:#EAB344;">风险评估&nbsp;&nbsp;&gt;</span></a></span>
+            <a href="javascript:void(0)">
+                <span id="user" class="glyphicon glyphicon-user"></span></a>
+            <a href="javascript:void(0)"><span id="bell" class="glyphicon glyphicon-bell"></span></a>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+</nav>
+<div class="col-md-12">
+    <h1>工控脆弱性评估报告</h1>
+    <h2>1.概览</h2>
+    <div class="row" id="overview">
+        <div class="col-md-3">
+            <div style="background: #AF91E1;width:80%">资产数量|{{assetCounts}}</div>
+        </div>
+        <div class="col-md-3">
+            <div style="background: #75B9E6;width:80%">漏洞数量|{{unrepairVulnCounts}}</div>
+        </div>
+        <div class="col-md-3">
+            <div style="background: #F4B162;width: 80%">脆弱性评分|{{unrepairRiskScore}}</div>
+        </div>
+        <div class="col-md-3" >
+            <div style="background: #E65097;width:80%">风险评分|{{unrepairRiskValue}}</div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <h2>2.资产统计分析</h2>
+    <h3>2.1 资产分类统计</h3>
+    <h4>1)资产按区域分类统计</h4>
+    <p>本次安全评估，共涉及<span style="color:#E65097;font-size:24px;">{{areaCount}}</span>个区域,
+        共<span style="color:#E65097;font-size:24px;">{{areaDevice}}</span>套工控软硬件。区域资产统计如下:</p>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">区域分布图</div>
+            <div class="panel-body" id="areachart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h4>2)资产按厂商分类统计</h4>
+    <p>涉及到的<span style="color:#E65097;font-size:24px">{{vendorDevice}}</span>个厂商设备,统计如下:</p>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">产商分布图</div>
+            <div class="panel-body" id="vendorchart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h4>3)资产按产品类型分类统计</h4>
+    <p>本次评估涉及的资产类型如下:</p>
+    <div class="col-md-12">
+        <table>
+            <tr>
+                <th>产品类型</th>
+                <th>数量</th>
+            </tr>
+            <tr v-for="t in type">
+                <td>{{t.type_name}}</td>
+                <td>{{t.asset_counts}}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="clearfix"></div>
+    <br>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">类型分布图</div>
+            <div class="panel-body" id="typechart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h4>4)资产按重要性分类统计</h4>
+    <p>按照资产的重要性统计如下:</p>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">重要性分布图</div>
+            <div class="panel-body" id="importancechart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h3>2.2 资产变动统计</h3>
+    <h4>1)资产变动趋势</h4>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">趋势变动</div>
+            <div class="panel-body" id="trendchart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h3>2.3 资产列表</h3>
+    <h4>1)重要资产top10</h4>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">重要资产</div>
+            <div class="panel-body">
+                <table>
+                    <thead>
+                    <th>ip</th>
+                    <th>资产类型</th>
+                    <th>资产系列</th>
+                    <th>资产型号</th>
+                    <th>重要性</th>
+                    <th>区域</th>
+                    </thead>
+                    <tbody>
+                    <tr v-for="asset in assetList">
+                        <td>{{asset.ip}}</td>
+                        <td>{{asset.type_name}}</td>
+                        <td>{{asset.name_name}}</td>
+                        <td>{{asset.spec_name}}</td>
+                        <td><span :class="getImpLevel(asset.importance)">{{getImp(asset.importance)}}</span></td>
+                        <td>{{asset.area_name}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <h2>3.安全漏洞统计分析</h2>
+    <p>本次安全评估，共发现<span style="color:#E65097;font-size:24px">{{vulnTotal}}</span>个漏洞</p>
+    <h3>3.1 漏洞统计</h3>
+    <div class="col-md-12">
+        <div class="panel panel-info">
+            <div class="panel-heading">漏洞类型分布图</div>
+            <div class="panel-body" id="vlunTypeChart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h3>3.2 安全漏洞趋势统计</h3>
+    <div class="col-md-12">
+        <div class="panel panel-info">
+            <div class="panel-heading">漏洞类型趋势变化</div>
+            <div class="panel-body" id="vulnTrend" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h3>3.3 安全漏洞影响范围列表</h3>
+    <div class="col-md-12">
+        <div class="panel panel-info">
+            <div class="panel-heading">漏洞列表</div>
+            <div class="panel-body">
+                <table class="table table-bordered" id="vlunlisttable">
+                    <thead>
+                    <tr>
+                        <th>漏洞编号</th>
+                        <th>漏洞标题</th>
+                        <th>威胁等级</th>
+                        <th>涉及资产</th>
+                        <th>CVE评分</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="vuln in vulns">
+                        <td>{{vuln.v_id}}</td>
+                        <td>{{vuln.title}}</td>
+                        <td>{{vuln.level}}</td>
+                        <td>
+                            <ul>
+                                <li v-for="asset in vuln.assets">{{asset.ip}}|{{asset.vendor_name}}</li>
+                            </ul>
+                        </td>
+                        <td>{{vuln.score}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <h2>4.资产脆弱性统计分析</h2>
+    <h3>4.1 资产风险统计</h3>
+    <p>本次评估共对<span style="color:#E65097;font-size:24px;">{{areaDevice}}</span>个工控软硬件进行了评估，
+        共发现<span style="color:#E65097;font-size:24px;">{{vulnTotal}}</span>个不同的安全漏洞，
+        累计漏洞危险评分积分达<span style="color:#E65097;font-size:24px;">{{unrepairRiskScore}}</span>分。</p>
+    <h6>1)资产脆弱性按照区域划分</h6>
+    <p>本次安全评估，共涉及<span style="color:#E65097;font-size:24px;">{{areaCount}}</span>个区域,
+        共<span style="color:#E65097;font-size:24px;">{{areaDevice}}</span>套工控软硬件。区域资产统计如下:</p>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">资产脆弱性区域分布图</div>
+            <div class="panel-body" id="riskareachart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h6>2)资产脆弱性按照厂商统计</h6>
+    <table>
+        <thead>
+        <tr>
+            <th>厂商</th>
+            <th>资产数量</th>
+            <th>漏洞数量</th>
+            <th>漏洞评分</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="vendor in riskVendor">
+            <td>{{vendor.ven_name}}</td>
+            <td>{{vendor.asset_counts}}</td>
+            <td>{{vendor.vuln_counts}}</td>
+            <td>{{vendor.risk_score}}</td>
+        </tr>
+        </tbody>
+    </table>
+    <br>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">资产脆弱性厂商分布图</div>
+            <div class="panel-body" id="riskvendorchart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h6>3)资产脆弱性按照资产类型统计</h6>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">资产脆弱性资产分布图</div>
+            <div class="panel-body" id="riskassetchart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h6>3)资产脆弱性按照资产重要性统计</h6>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">资产脆弱性资产重要性分布图</div>
+            <div class="panel-body" id="riskimportancechart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h3>资产脆弱性趋势统计</h3>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">脆弱性资产变化趋势图</div>
+            <div class="panel-body" id="riskcountchart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">脆弱性资产评分趋势图</div>
+            <div class="panel-body" id="riskscorechart" style="width: 100%;height:500px;"></div>
+        </div>
+    </div>
+    <h3>资产风险列表</h3>
+    <div class="col-md-12">
+        <div class="pannel panel-info">
+            <div class="panel-heading">资产风险列表</div>
+            <div class="panel-body" >
+                <table class="table table-bordered" id="riskassetlist">
+                    <tr>
+                        <th>资产地址</th>
+                        <th>资产类型</th>
+                        <th>资产名字</th>
+                        <th>资产</th>
+                        <th>资产重要性</th>
+                        <th>区域</th>
+                        <th>漏洞列表</th>
+                    </tr>
+                    <tr v-for="asset in riskAssets">
+                        <td>{{asset.ip}}</td>
+                        <td>{{asset.type_name}}</td>
+                        <td>{{asset.name_name}}</td>
+                        <td>{{asset.spec_name}}</td>
+                        <td><span :class="getImpLevel(asset.importance)">{{getImp(asset.importance)}}</span></td>
+                        <td>{{asset.area_name}}</td>
+                        <td><div v-for="v in asset.vulns">{{v}}</div></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-md-12">
+    <button type="button" class="btn btn-block btn-info" style="font-size:36px;"><strong>生成报表</strong></button>
+</div>
+<!--自定义popover-->
+<div id="bell-popover-head" class="hide"><span class="text-center" style="width: 200px;">漏洞库更新通知</span></div>
+<div id="bell-popover-content" class="hide">
+    <span>漏洞库已经更新，为了更好的体验，请您及时更新</span>
+</div>
+<div id="user-popover-content" class="hide">
+    <ul style="padding: 0px;background: #F3F2F7;list-style: none">
+        <li style="font-size:18px;border-bottom:1px solid #A8A99F;padding:5px 0px;" class="text-center">
+            <a href="javascript:void(0)">报表管理</a>
+        </li>
+        <li style="font-size:18px;border-bottom:1px solid #A8A99F;padding:5px 0px;" class="text-center">
+            <a href="javascript:void(0)" onclick="areaAdmin()">资产区域</a>
+        </li>
+        <li style="font-size:18px;border-bottom:1px solid #A8A99F;padding:5px 0px;" class="text-center">
+            <a href="javascript:void(0)" onclick=" taskAdmin()">任务管理</a>
+        </li>
+        <li style="font-size:18px;border-bottom:1px solid #A8A99F;padding:5px 0px;" class="text-center">
+            <a href="javascript:void(0)">个人信息</a>
+        </li>
+        <li style="font-size:18px;border-bottom:1px solid #A8A99F;padding:5px 0px;" class="text-center">
+            <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+        </li>
+    </ul>
+</div>
+<!--popover end -->
+<!--area admin-->
+<div class="modal fade" id="areaModal" tabindex="-1" role="dialog"
+     aria-labelledby="areaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">×
+                </button>
+                <h3 class="modal-title text-info text-center" id="areaModalLabel">
+                    资产管理
+                </h3>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-primary" id="addBtn">
+                        <span class="glyphicon glyphicon-plus"></span>添加区域
+                    </button>&nbsp;&nbsp;
+                    <button type="button" class="btn btn-primary" @click="removeArea()">
+                        <span class="glyphicon glyphicon-trash"></span>删除区域
+                    </button>
+                </div>
+                <br>
+                <div class="col-md-12">
+                    <table width="100%" id="areaTable">
+                        <thead>
+                        <tr>
+                            <td>标记</td>
+                            <td>区域名称</td>
+                            <td>区域管理人</td>
+                            <td>区域重要性</td>
+                            <td>区域资产数</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="area in areas">
+                            <td v-if="area.asset_counts"><input type="checkbox" disabled /></td>
+                            <td v-else><input type="checkbox"  @click="addRemoveIndex($index)" /></td>
+                            <td>{{area.name}}</td>
+                            <td>{{area.owener}}</td>
+                            <td ><span :class="getImpLevel(area.important)">{{getImp(area.important)}}</span></td>
+                            <td>{{area.asset_counts}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="clearfix"></div>
+                <hr>
+                <div class="col-md-12" id="addAsset">
+                    <div class="form-group text-right">
+                        <label for="assetName" class="control-label col-md-3">区域名称</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control" id="assetName" />
+                        </div>
+                    </div>
+                    <div class="form-group text-right">
+                        <label for="assetOwner" class="control-label col-md-3">区域管理人</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control" id="assetOwner" />
+                        </div>
+                    </div>
+                    <div class="form-group text-right">
+                        <label for="assetPhone" class="control-label col-md-3">联系方式</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control" id="assetPhone" />
+                        </div>
+                    </div>
+                    <div class="form-group text-right">
+                        <label for="assetDesc" class="control-label col-md-3">区域描述</label>
+                        <div class="col-md-9">
+                            <textarea rows="3" class="form-control" id="assetDesc"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group text-right">
+                        <label for="assetImp" class="control-label col-md-3">区域重要性</label>
+                        <div class="col-md-9">
+                            <select class="form-control" id="assetImp">
+                                <option value="1">不重要</option>
+                                <option value="2">一般</option>
+                                <option value="3" selected>重要</option>
+                                <option value="4">比较重要</option>
+                                <option value="5">特别重要</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <br>
+                    <button type="button" class="btn btn-primary form-control" @click="addArea()">添加</button>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <br>
+            <div class="modal-footer text-center">
+                <button type="button" class="btn btn-default"
+                        data-dismiss="modal">关闭
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<!--area end -->
+<!--task admin-->
+<div class="modal fade" id="taskModal" tabindex="-1" role="dialog"
+     aria-labelledby="taskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">×
+                </button>
+                <h3 class="modal-title text-info text-center" id="taskModalLabel">
+                    任务管理
+                </h3>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-primary" @click="clearTask()">清空</button>&nbsp;&nbsp;
+                    <button type="button" class="btn btn-primary" @click="removeTask()">删除</button>
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-md-12" style="overflow: auto;height: 400px;">
+                    <table width="100%">
+                        <thead>
+                        <tr>
+                            <td>标记</td>
+                            <td>任务名称</td>
+                            <td>任务目标</td>
+                            <td>任务时间</td>
+                            <td>任务操作</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="task in taskList">
+                            <td><input type="checkbox" @click="addRemoveTask(task)"></td>
+                            <td>{{task.taskName}}</td>
+                            <td>{{task.target}}</td>
+                            <td>{{strFormat(task.datetime)}}</td>
+                            <td><button class="btn btn-danger" @click="delTask($index)">删除</button> </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <br>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default"
+                        data-dismiss="modal">关闭
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<!--task end-->
+</body>
+<script type="text/javascript" src="static/js/risk.js"></script>
+</html>
